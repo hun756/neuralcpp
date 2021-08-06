@@ -132,6 +132,9 @@ namespace Dense
             {
                 for (size_t i = 0; i < _inputLen; ++i) 
                     *res += _weight[idx][i + 1] * _layer[i];
+
+                ///< Nonlinearity : tanh
+                *res = tanh(*res);
             };
 
 
