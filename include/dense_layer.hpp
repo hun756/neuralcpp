@@ -10,9 +10,11 @@
 
 namespace Dense
 {
+    class DenseNetwork;
     class DenseLayer
     {
         typedef double float_t;
+        friend class DenseNetwork;
 
     public:
         
@@ -27,8 +29,8 @@ namespace Dense
             std::mt19937_64 gen(rd());
 
             std::normal_distribution<float> dis(
-              -2.0 / (inputLen + outputLen),
-              2.0 / (inputLen + outputLen)  
+                -2.0 / (inputLen + outputLen),
+                2.0 / (inputLen + outputLen)  
             );
 
             // for (size_t i = 0; i < outputLen; ++i)
@@ -44,7 +46,6 @@ namespace Dense
             }
         }
 
-        #pragma region RueOf5
         DenseLayer(const DenseLayer& layer)
         {
             inputLen = layer.inputLen;
@@ -109,15 +110,16 @@ namespace Dense
             }
             return *this;
         }
-        #pragma endregion
 
 
-        void setPrev(const DenseLayer& layer)
+        void setPrev(std::unique_ptr<DenseLayer>&& layer)
         {
-            prev = std::make_unique<DenseLayer>(layer);
+            prev = std::move(layer);
         }
 
-        const std::unique_ptr<float_t[]>& forwardProp(const std::unique_ptr<float_t[]>& input)
+        const std::unique_ptr<DenseLayer>& getPrev() const { return prev; } 
+
+        std::unique_ptr<float_t[]>& forwardProp(const std::unique_ptr<float_t[]>& input)
         {
             assert(!prev || prev->outputLen == inputLen);
             auto& in = prev ? prev->forwardProp(input) : input;
@@ -134,12 +136,12 @@ namespace Dense
                     *res += _weight[idx][i + 1] * _layer[i];
 
                 ///< Nonlinearity : tanh
-                *res = tanh(*res);
+                *res = std::tanh(*res);
             };
 
 
             std::cout << "in = \n";
-            for (size_t i = 0; i < outputLen; ++i)
+            for (size_t i = 0; i < inputLen; ++i)
             {
                 std::cout << in[i] << '\n';
             }

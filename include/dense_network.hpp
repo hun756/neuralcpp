@@ -30,12 +30,12 @@ namespace Dense
             else
             {
                 outputLayer = std::make_unique<DenseLayer>(hiddenLen, outputLen);
-                auto* curLayer = &outputLayer->getPrev();
+                auto* curLayer = &outputLayer->prev;
                 for (size_t i = 0; i < layerCnt - 2; ++i)
                 {
                     auto hidden_layer = std::make_unique<DenseLayer>(hiddenLen, hiddenLen);
                     *curLayer = std::move(hidden_layer);
-                    curLayer = &(*curLayer)->getPrev();
+                    curLayer = &(*curLayer)->prev;
                 }
 
                 auto firstLayer = std::make_unique<DenseLayer>(inputLen, hiddenLen);
@@ -44,6 +44,21 @@ namespace Dense
         }
 
         ~DenseNetwork() = default;
+
+        float_t forwardPropError(const std::unique_ptr<float_t[]>& input, const std::unique_ptr<float_t[]>& expected) 
+        {
+            auto& result = outputLayer->forwardProp(input);
+            float_t res = 0;
+
+            // mse
+            for (size_t i = 0; i < outputSize; ++i)
+            {
+                float_t diff = result[i] - expected[i];
+                res += diff * diff;
+            }
+
+            return res;
+        }
 
     private:
         size_t layerCnt,
